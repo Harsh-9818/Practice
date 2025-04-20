@@ -25,10 +25,24 @@ app.get('/login', (req, res) => {
 
 app.get('/profile', isLoggedIn, async (req, res) => {
     //console.log(req.user); //user ki details console mai print kiya
-    let user = await userModel.findOne({email: req.user.email}); //email se user ki details fetch kiya
-    console.log(user);
+    let user = await userModel.findOne({email: req.user.email}).populate('posts'); //email se user ki details fetch kiya aur posts ko populate kiya
     res.render('profile', { user }); //user ki details ko profile page pe render kiya
 });    
+
+//post create
+app.post('/post', isLoggedIn, async (req, res) => {
+    let user = await userModel.findOne({email: req.user.email}); //email se user ki details fetch kiya
+    let {content} = req.body; //body se content extract kiya
+
+    let post = await postModel.create({
+        user: user._id, //user ki id se post create kiya
+        content: content //content ko post mai store kiya
+    });
+
+    user.posts.push(post._id); //user ki posts mai post ki id push kiya
+    await user.save(); //user ko save kiya
+    res.redirect('/profile'); 
+});
 
 //register page
 app.post('/register', async (req, res) => {
