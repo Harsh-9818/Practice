@@ -29,6 +29,20 @@ app.get('/profile', isLoggedIn, async (req, res) => {
     res.render('profile', { user }); //user ki details ko profile page pe render kiya
 });    
 
+//like
+app.get('/like/:id', isLoggedIn, async (req, res) => {
+    let post = await postModel.findOne({_id: req.params.id}).populate('user'); //post ki id se post ki details fetch kiya aur user ko populate kiya
+    
+    if(post.likes.indexOf(req.user.userid) === -1) { //agar user ki id likes mai hai to
+        post.likes.push(req.user.userid);
+    }
+    else{
+        post.likes.splice(post.likes.indexOf(req.user.userid), 1); //agar nahi hai to likes se remove kiya
+    }
+    await post.save(); 
+    res.redirect('/profile');
+})
+
 //post create
 app.post('/post', isLoggedIn, async (req, res) => {
     let user = await userModel.findOne({email: req.user.email}); //email se user ki details fetch kiya
